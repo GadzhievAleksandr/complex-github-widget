@@ -12,7 +12,7 @@ interface ChartPoint {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('user');
+  const username = searchParams.get('user') || searchParams.get('username');
 
   if (!username) return new Response('Username required', { status: 400 });
 
@@ -31,14 +31,10 @@ export async function GET(request: Request) {
             }
           }
         }
-        pinnedItems(first: 3, types: REPOSITORY) {
+        recentRepos: repositories(first: 3, ownerAffiliations: OWNER, orderBy: {field: PUSHED_AT, direction: DESC}) {
           nodes {
-            ... on Repository {
-              name
-              owner { login }
-              description
-              readme: object(expression: "HEAD:README.md") { ... on Blob { text } }
-            }
+            name
+            description
           }
         }
         contributionsCollection {
@@ -73,7 +69,7 @@ export async function GET(request: Request) {
       .slice(-30);
     
     const maxVal = Math.max(...allDays.map((d: any) => d.contributionCount)) || 1;
-    const chartWidth = 700;
+    const chartWidth = 900;
     const chartHeight = 200;
     const stepX = chartWidth / (allDays.length - 1);
 
@@ -86,16 +82,6 @@ export async function GET(request: Request) {
 
     const linePath = points.map((p: ChartPoint, i: number) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
     const areaPath = `${linePath} L ${points[points.length-1].x} ${chartHeight} L 0 ${chartHeight} Z`;
-
-    const processedRepos = user.pinnedItems.nodes.map((repo: any) => {
-      const readme = repo.readme?.text || "";
-      const imgMatch = readme.match(/!\[.*?\]\((.*?)\)/) || readme.match(/<img.*?src=["'](.*?)["']/);
-      let imgUrl = imgMatch ? imgMatch[1].split(' ')[0].replace(/["']/g, '') : null;
-      if (imgUrl && !imgUrl.startsWith('http')) {
-        imgUrl = `https://raw.githubusercontent.com/${repo.owner.login}/${repo.name}/main/${imgUrl.replace(/^\.\//, '')}`;
-      }
-      return { ...repo, imgUrl };
-    });
 
     return new ImageResponse(
       (
@@ -130,17 +116,17 @@ export async function GET(request: Request) {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', width: '750px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '1000px' }}>
                 <div style={{ display: 'flex', fontSize: '14px', color: '#FFFFFF', marginBottom: '20px', letterSpacing: '2px', fontWeight: 'bold' }}>
                    MONTHLY_ACTIVITY_PULSE // 30_DAY_STREAMS
                 </div>
                 
-                <div style={{ display: 'flex', position: 'relative', width: '700px', height: '200px', borderLeft: '2px solid #555', borderBottom: '2px solid #555', marginLeft: '50px' }}>
+                <div style={{ display: 'flex', position: 'relative', width: '900px', height: '200px', borderLeft: '2px solid #555', borderBottom: '2px solid #555', marginLeft: '50px' }}>
                     {[1, 0.75, 0.5, 0.25, 0].map((factor: number, i: number) => (
                         <div key={i} style={{ 
                             display: 'flex', position: 'absolute', left: '-45px', 
                             top: `${(1 - factor) * 100}%`, transform: 'translateY(-50%)',
-                            fontSize: '11px', color: factor === 1 ? '#FFF' : '#777'
+                            fontSize: '11px', color: '#FFF'
                         }}>
                             {Math.round(maxVal * factor)}
                         </div>
@@ -152,7 +138,7 @@ export async function GET(request: Request) {
                         ))}
                     </div>
                     
-                    <svg width="700" height="200" style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}>
+                    <svg width="900" height="200" style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}>
                         <path d={areaPath} fill="rgba(255, 255, 255, 0.03)" />
                         <path d={linePath} fill="none" stroke="#ffffff" strokeWidth="3" />
                         {points.map((p: ChartPoint, i: number) => (
@@ -163,7 +149,7 @@ export async function GET(request: Request) {
                     {points.map((p: ChartPoint, i: number) => (
                         <div key={i} style={{ 
                             display: 'flex', position: 'absolute', left: `${p.x}px`, bottom: '-25px',
-                            transform: 'translateX(-50%)', fontSize: '9px', color: '#888'
+                            transform: 'translateX(-50%)', fontSize: '9px', color: '#FFF', fontWeight: 'bold'
                         }}>
                             {p.day}
                         </div>
@@ -172,29 +158,30 @@ export async function GET(request: Request) {
             </div>
           </div>
 
+          <div style={{ display: 'flex', fontSize: '14px', color: '#FFFFFF', marginBottom: '20px', letterSpacing: '2px', fontWeight: 'bold' }}>
+             RECENTLY_UPDATED_REPOSITORIES // ACCESS_LOG
+          </div>
+
           <div style={{ display: 'flex', gap: '30px', width: '100%' }}>
-            {processedRepos.map((repo: any, i: number) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', flex: 1, border: '1px solid #444', backgroundColor: '#050505' }}>
-                    <div style={{ display: 'flex', width: '100%', height: '200px', backgroundColor: '#000', overflow: 'hidden' }}>
-                        {repo.imgUrl ? (
-                          <img src={repo.imgUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{ display: 'flex', padding: '25px', fontSize: '13px', color: '#888', lineHeight: '1.6' }}>
-                            {repo.readme?.text?.slice(0, 250).replace(/[#*`_]/g, '')}...
-                          </div>
-                        )}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', padding: '25px', borderTop: '1px solid #444' }}>
-                        <div style={{ display: 'flex', fontSize: '26px', fontWeight: 'bold', color: '#FFFFFF', marginBottom: '10px' }}>{repo.name}</div>
-                        <div style={{ display: 'flex', fontSize: '15px', color: '#BBBBBB', lineHeight: '1.5' }}>{repo.description || "No description."}</div>
-                    </div>
+            {user.recentRepos.nodes.map((repo: any, i: number) => (
+                <div key={i} style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    flex: 1, 
+                    border: '2px solid #666', 
+                    borderRadius: '16px', 
+                    backgroundColor: '#050505', 
+                    padding: '30px' 
+                }}>
+                    <div style={{ display: 'flex', fontSize: '26px', fontWeight: 'bold', color: '#FFFFFF', marginBottom: '15px' }}>{repo.name}</div>
+                    <div style={{ display: 'flex', fontSize: '15px', color: '#BBBBBB', lineHeight: '1.5' }}>{repo.description || "No description."}</div>
                 </div>
             ))}
           </div>
 
         </div>
       ),
-      { width: 1600, height: 1100 }
+      { width: 1600, height: 700 }
     );
   } catch (err: any) {
     return new Response(`SYSTEM_FAILURE: ${err.message}`, { status: 500 });

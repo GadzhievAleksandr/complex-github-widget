@@ -1,4 +1,6 @@
 
+![My Stats](https://complex-github-widget-c9h2.vercel.app/api/widget?user=RomanLivik)
+
 
 > Attention!!! the product is under development. The widget can change its appearance durind this process. When the development is completed, this warning will disappear.
 
@@ -9,7 +11,7 @@ This is a dynamic widget for a GitHub profile in black and white style. The widg
 *   Amoled aesthetic
 *   Monthly activity pulse
 *   Language donut
-*   Fresh style of pinned repos
+*   Fresh style of recent repositories
 *   Pure SVG
 
 ##  Adding in your profile
@@ -17,5 +19,5 @@ This is a dynamic widget for a GitHub profile in black and white style. The widg
 ```
 ![My Stats](https://complex-github-widget-c9h2.vercel.app/api/widget?user=YOUR_NICKNAME)
 ```
-## Warning: 
-The project based on versel ando could be unstable. If it is not draw you should wait some time and refresh your page!!!
+
+> The project based on versel ando could be unstable. If it is not draw you should wait some time and refresh your page!!!

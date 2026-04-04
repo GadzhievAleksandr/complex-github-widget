@@ -20,7 +20,6 @@ This is a dynamic widget for a GitHub profile in black and white style. The widg
 ```
 ![My Stats](https://complex-github-widget-c9h2.vercel.app/api/widget?user=YOUR_USERNAME)
 ```
-
  <br/>
   <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/red.png" width="100%" height="3px" />
 </div>

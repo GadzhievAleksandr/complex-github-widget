@@ -24,4 +24,4 @@ This is a dynamic widget for a GitHub profile in black and white style. The widg
   <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/red.png" width="100%" height="3px" />
 </div>
 
-> The project based on versel ando could be unstable. If it is not draw you should wait some time and refresh your page!!!
+> The project based on versel and could be unstable. If it is not draw you should wait some time and refresh your page!!! The widget can broke if you watch content in Russia (thanks evil's corporation)
